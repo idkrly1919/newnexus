@@ -2,7 +2,8 @@
 
 import { toast } from "sonner";
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+// Using the actual API key provided
+const OPENROUTER_API_KEY = "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";
 
 if (!OPENROUTER_API_KEY) {
   console.warn("OpenRouter API key not found. Please set VITE_OPENROUTER_API_KEY in your environment variables.");
@@ -13,7 +14,7 @@ export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-  image?: string;
+  reasoning_details?: any;
 }
 
 export interface ChatCompletionRequest {
@@ -21,9 +22,13 @@ export interface ChatCompletionRequest {
   messages: Array<{
     role: "user" | "assistant" | "system";
     content: string;
+    reasoning_details?: any;
   }>;
   temperature?: number;
   max_tokens?: number;
+  reasoning?: {
+    enabled: boolean;
+  };
 }
 
 export class OpenRouterClient {
@@ -34,10 +39,34 @@ export class OpenRouterClient {
   }
 
   async chat(
-    messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
+    messages: Array<{ 
+      role: "user" | "assistant" | "system"; 
+      content: string; 
+      reasoning_details?: any; 
+    }>,
     signal?: AbortSignal
-  ): Promise<string> {
+  ): Promise<{ content: string; reasoning_details?: any }> {
     try {
+      // Check if this is the first message or if we need to continue reasoning
+      const isReasoningEnabled = messages.length === 1 || 
+        messages.some(msg => msg.reasoning_details !== undefined);
+
+      const requestBody: any = {
+        model: "x-ai/grok-4.1-fast:free",
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          ...(msg.reasoning_details && { reasoning_details: msg.reasoning_details })
+        })),
+        temperature: 0.7,
+        max_tokens: 4000,
+      };
+
+      // Enable reasoning for the first call or when continuing
+      if (isReasoningEnabled) {
+        requestBody.reasoning = { enabled: true };
+      }
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -46,21 +75,21 @@ export class OpenRouterClient {
           "HTTP-Referer": window.location.origin,
           "X-Title": "ChatGPT Clone",
         },
-        body: JSON.stringify({
-          model: "xai:grok-2-180613",
-          messages,
-          temperature: 0.7,
-          max_tokens: 4000,
-        }),
+        body: JSON.stringify(requestBody),
         signal,
       });
 
       if (!response.ok) {
-        throw new Error(`OpenRouter API error: ${response.status}`);
+        throw new Error(`OpenRouter API error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.choices[0].message.content;
+      const assistantMessage = data.choices[0].message;
+      
+      return {
+        content: assistantMessage.content,
+        reasoning_details: assistantMessage.reasoning_details
+      };
     } catch (error) {
       console.error("Chat API error:", error);
       throw error;

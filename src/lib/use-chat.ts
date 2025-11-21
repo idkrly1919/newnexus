@@ -53,10 +53,19 @@ export const useChat = () => {
         }
       } else {
         try {
-          const response = await openRouterClient.chat([...messages, userMessage]);
+          // Prepare messages with reasoning details if they exist
+          const messagesWithReasoning = messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            ...(msg.reasoning_details && { reasoning_details: msg.reasoning_details })
+          }));
+
+          const response = await openRouterClient.chat([...messagesWithReasoning, userMessage]);
+          
           addMessage({
             role: "assistant",
-            content: response,
+            content: response.content,
+            reasoning_details: response.reasoning_details,
           });
         } catch (error) {
           console.error("Chat API error:", error);
