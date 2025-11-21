@@ -38,15 +38,15 @@ const TerminalChat = () => {
     }
   }, [input, isTyping, isGeneratingImage, sendMessage]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as any);
     }
-  };
+  }, [handleSubmit]);
 
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = () => setIsFocused(false);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white font-sans overflow-hidden">
@@ -59,7 +59,7 @@ const TerminalChat = () => {
           <div className="relative">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 animate-bounce">
               <span className="text-xs sm:text-sm font-bold text-white">G</span>
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full animate-ping opacity-20" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full animate-ping opacity-20" />
             </div>
           </div>
           <div className="flex flex-col">
@@ -75,19 +75,18 @@ const TerminalChat = () => {
             New chat
           </Button>
         </div>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-white/10"
-        >
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-white/10">
           <MoreVertical className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0 relative">
-          <ScrollArea className="flex-1">
-            <div className="space-y-6 py-6 sm:py-8 px-4 sm:px-6 md:px-12 max-w-4xl mx-auto w-full">
-              {/* Empty State */}
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center text-center py-16 sm:py-32 space-y-6">
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 py-6 sm:py-8 px-4 sm:px-6 md:px-12 max-w-4xl mx-auto w-full">
+            {/* Empty State */}
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center text-center py-16 sm:py-32 space-y-6">
                 <div className="relative">
                   <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-gradient-to-br from-blue-400 via-blue-500 to-purple-600 rounded-full shadow-2xl shadow-blue-500/50 animate-pulse" />
                   <div className="absolute inset-2 w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full animate-ping" />
@@ -114,22 +113,23 @@ const TerminalChat = () => {
               >
                 {msg.role === "assistant" && (
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs sm:text-sm font-bold text-white">G</span>
-                </div>
+                    <span className="text-xs sm:text-sm font-bold text-white">G</span>
+                  </div>
                 )}
                 <div
                   className={cn(
                     "max-w-[85%] sm:max-w-2xl px-4 sm:px-6 py-3 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl border backdrop-blur-sm transition-all duration-300 hover:shadow-2xl",
                     msg.role === "assistant"
-                      ? "bg-white/5 border-white/10 rounded-tl-lg text-gray-200",
+                      ? "bg-white/5 border-white/10 rounded-tl-lg text-gray-200"
                       : "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-tr-lg"
                   )}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base",
+                  <p className={cn(
+                    "whitespace-pre-wrap leading-relaxed text-sm sm:text-base",
                     msg.role === "assistant" ? "text-left" : "text-right"
-                >
-                  {msg.content}
-                </p>
+                  )}>
+                    {msg.content}
+                  </p>
                 </div>
               </div>
             ))}
@@ -191,7 +191,7 @@ const TerminalChat = () => {
               onFocus={handleFocus}
               onBlur={handleBlur}
               placeholder="Message Grok..."
-              className="flex-1 min-h-[44px] max-h-32 resize-none bg-transparent border-0 outline-none text-white placeholder-gray-400 text-sm sm:text-base leading-relaxed p-3 -m-3 sm:-m-4 rounded-2xl sm:rounded-3xl focus-visible:ring-0 focus-visible:ring-offset-0 p-0 m-0"
+              className="flex-1 min-h-[44px] max-h-32 resize-none bg-transparent border-0 outline-none text-white placeholder-gray-400 text-sm sm:text-base leading-relaxed p-0 m-0 rounded-2xl sm:rounded-3xl focus-visible:ring-0 focus-visible:ring-offset-0"
               rows={1}
               disabled={isTyping || isGeneratingImage}
             />
