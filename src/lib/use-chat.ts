@@ -21,7 +21,7 @@ export const useChat = () => {
 
   const sendMessage = useCallback(
     async (content: string) => {
-      if (!content.trim() || isTyping) return;
+      if (!content.trim() || isTyping || isGeneratingImage) return;
 
       const userMessage = {
         role: "user" as const,
@@ -29,7 +29,6 @@ export const useChat = () => {
       };
 
       addMessage(userMessage);
-      setIsTyping(true);
 
       // Check if this is an image generation request
       const imageKeywords = ["generate image", "create image", "draw", "paint", "visualize", "show me"];
@@ -38,20 +37,33 @@ export const useChat = () => {
       );
 
       if (isImageRequest) {
+        setIsGeneratingImage(true);
+        abortControllerRef.current = new AbortController();
+        
         try {
-          const response = await openRouterClient.generateImage(content);
+          const response = await openRouterClient.generateImage(content, abortControllerRef.current.signal);
           addMessage({
             role: "assistant",
             content: response,
           });
         } catch (error) {
-          console.error("Image generation failed:", error);
-          addMessage({
-            role: "assistant",
-            content: "I'm sorry, I couldn't generate an image right now. Please try again.",
-          });
+          if (error instanceof Error && error.name === 'AbortError') {
+            toast.info("Image generation cancelled");
+          } else {
+            console.error("Image generation failed:", error);
+            addMessage({
+              role: "assistant",
+              content: "I'm sorry, I couldn't generate an image right now. Please try again.",
+            });
+          }
+        } finally {
+          setIsGeneratingImage(false);
+          abortControllerRef.current = null;
         }
       } else {
+        setIsTyping(true);
+        abortControllerRef.current = new AbortController();
+        
         try {
           // Prepare messages with reasoning details if they exist
           const messagesWithReasoning = messages.map(msg => ({
@@ -60,7 +72,7 @@ export const useChat = () => {
             ...(msg.reasoning_details && { reasoning_details: msg.reasoning_details })
           }));
 
-          const response = await openRouterClient.chat([...messagesWithReasoning, userMessage]);
+          const response = await openRouterClient.chat([...messagesWithReasoning, userMessage], abortControllerRef.current.signal);
           
           addMessage({
             role: "assistant",
@@ -68,17 +80,22 @@ export const useChat = () => {
             reasoning_details: response.reasoning_details,
           });
         } catch (error) {
-          console.error("Chat API error:", error);
-          addMessage({
-            role: "assistant",
-            content: "I'm sorry, I'm having trouble responding right now. Please try again.",
-          });
+          if (error instanceof Error && error.name === 'AbortError') {
+            toast.info("Chat cancelled");
+          } else {
+            console.error("Chat API error:", error);
+            addMessage({
+              role: "assistant",
+              content: "I'm sorry, I'm having trouble responding right now. Please try again.",
+            });
+          }
+        } finally {
+          setIsTyping(false);
+          abortControllerRef.current = null;
         }
       }
-
-      setIsTyping(false);
     },
-    [messages, isTyping, addMessage]
+    [messages, isTyping, isGeneratingImage, addMessage]
   );
 
   const clearChat = useCallback(() => {

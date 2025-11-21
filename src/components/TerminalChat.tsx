@@ -4,13 +4,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Loader2, Paperclip, ChevronDown, Lightbulb, Mic } from "lucide-react";
+import { MoreVertical, Loader2, Paperclip, ChevronDown, Lightbulb, Mic, Square } from "lucide-react";
 import { useChat } from "@/lib/use-chat";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const TerminalChat = () => {
-  const { messages, isTyping, sendMessage, clearChat } = useChat();
+  const { messages, isTyping, isGeneratingImage, sendMessage, clearChat, stopGeneration } = useChat();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -18,15 +18,15 @@ const TerminalChat = () => {
   // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, isGeneratingImage]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isTyping) {
+    if (input.trim() && !isTyping && !isGeneratingImage) {
       sendMessage(input.trim());
       setInput("");
     }
-  }, [input, isTyping, sendMessage]);
+  }, [input, isTyping, isGeneratingImage, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -36,9 +36,9 @@ const TerminalChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="h-screen flex flex-col bg-black text-white font-sans">
       {/* Top Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-md border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+      <div className="flex-shrink-0 bg-black/50 backdrop-blur-md border-b border-gray-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
             <span className="text-xs font-bold">G</span>
@@ -58,10 +58,10 @@ const TerminalChat = () => {
         </Button>
       </div>
 
-      {/* Chat Area */}
-      <div className="pt-20 pb-28 px-6 md:px-12 max-w-4xl mx-auto">
-        <ScrollArea className="h-[calc(100vh-10rem)]">
-          <div className="space-y-6 py-8">
+      {/* Chat Area - Flex grow to fill remaining space */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 py-8 px-6 md:px-12 max-w-4xl mx-auto">
             {/* Empty State */}
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center text-center py-32 space-y-6">
@@ -107,13 +107,34 @@ const TerminalChat = () => {
                 </div>
               </div>
             )}
+
+            {/* Image Generation Indicator */}
+            {isGeneratingImage && (
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-2">
+                  <span className="text-xs font-bold text-white">G</span>
+                </div>
+                <div className="max-w-2xl px-6 py-5 bg-blue-900/20 rounded-3xl rounded-tl-lg border border-blue-800/50 backdrop-blur-sm flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                  <span className="text-blue-300">Generating image with <strong>google/gemini-2.5-flash-image</strong>...</span>
+                  <Button 
+                    onClick={stopGeneration}
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 text-blue-400 hover:text-white hover:bg-blue-800/50 ml-2"
+                  >
+                    <Square className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           <div ref={scrollRef} />
         </ScrollArea>
       </div>
 
-      {/* Bottom Input Bar - Pixel-perfect screenshot match */}
-      <div className="fixed bottom-6 left-6 right-6 md:bottom-8 md:left-12 md:right-12 z-40 max-w-4xl mx-auto">
+      {/* Bottom Input Bar */}
+      <div className="flex-shrink-0 px-6 py-4 md:px-12 max-w-4xl mx-auto w-full">
         <div className="bg-gray-900/30 backdrop-blur-md border border-gray-800/50 rounded-3xl p-3 md:p-4 shadow-2xl hover:shadow-xl transition-all">
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <Textarea
@@ -123,6 +144,7 @@ const TerminalChat = () => {
               placeholder="Message Grok..."
               className="flex-1 min-h-[44px] max-h-24 resize-none bg-transparent border-0 outline-none text-white placeholder-gray-500 text-sm leading-relaxed p-3 -m-3 md:-m-4 rounded-3xl focus-visible:ring-0"
               rows={1}
+              disabled={isTyping || isGeneratingImage}
             />
             <div className="flex items-center gap-1 h-10 flex-shrink-0">
               <Button type="button" variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl">
