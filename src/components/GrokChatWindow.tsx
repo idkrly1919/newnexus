@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/components/ui/cn";
 import { useChat } from "@/lib/use-chat";
-import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -105,7 +104,7 @@ const GrokChatWindow = () => {
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="relative"
                 >
-                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justifycenter shadow-lg">
                     <Sparkles className="h-8 w-8 text-white" />
                   </div>
                   <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full animate-pulse shadow-sm" />
@@ -126,9 +125,11 @@ const GrokChatWindow = () => {
                     transition={{ delay: 0.3 }}
                     className="text-gray-400 max-w-md leading-relaxed"
                   >
-                    Ask me anything, or request image generation with prompts like 
-                    <span className="font-medium text-orange-400">"generate image of..."</span>
-                  </p>
+                    Ask me anything, or request image generation with prompts like{" "}
+                    <span className="font-medium text-orange-400">
+                      "generate image of..."
+                    </span>
+                  </motion.p>
                 </div>
 
                 {/* Quick Actions */}
@@ -198,7 +199,7 @@ const GrokChatWindow = () => {
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       className="w-8 h-8"
                     >
-                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justifycenter shadow-lg">
                         <Sparkles className="h-3 w-3 text-white" />
                       </div>
                     </motion.div>
