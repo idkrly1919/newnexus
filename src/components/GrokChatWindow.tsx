@@ -6,6 +6,7 @@ import { Send, Sparkles, Brain, RotateCcw, Paperclip, Smile, Mic } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/components/ui/cn";
 
 interface Message {
   id: string;
@@ -139,7 +140,7 @@ const GrokChatWindow = () => {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     className="w-8 h-8"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justifycenter">
                       <span className="text-white text-xs font-medium">
                         {message.content.charAt(0).toUpperCase()}
                       </span>
@@ -199,7 +200,7 @@ const GrokChatWindow = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   className="w-8 h-8"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justifycenter shadow-lg">
                     <Sparkles className="h-3 w-3 text-white" />
                   </div>
                 </motion.div>
