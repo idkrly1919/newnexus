@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Send, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, Paperclip, ChevronDown, Lightbulb, Mic } from "lucide-react";
 import { useChat } from "@/lib/use-chat";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,14 @@ const TerminalChat = () => {
             <span className="text-xs font-bold">G</span>
           </div>
           <h1 className="text-xl font-semibold">Grok</h1>
+          <Button
+            onClick={clearChat}
+            variant="ghost"
+            size="sm"
+            className="h-8 px-3 text-gray-400 hover:text-white hover:bg-gray-800 text-sm"
+          >
+            New chat
+          </Button>
         </div>
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-800">
           <MoreVertical className="h-4 w-4" />
@@ -51,8 +59,8 @@ const TerminalChat = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="pt-20 pb-32 px-6 md:px-12 max-w-4xl mx-auto">
-        <ScrollArea className="h-[calc(100vh-12rem)]">
+      <div className="pt-20 pb-28 px-6 md:px-12 max-w-4xl mx-auto">
+        <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-6 py-8">
             {/* Empty State */}
             {messages.length === 0 && (
@@ -104,37 +112,35 @@ const TerminalChat = () => {
         </ScrollArea>
       </div>
 
-      {/* Bottom Input Bar */}
-      <div className="fixed bottom-6 left-6 right-6 md:left-12 md:right-12 z-40 flex items-end gap-3 max-w-4xl mx-auto">
-        <Button
-          onClick={clearChat}
-          variant="ghost"
-          size="sm"
-          className="h-12 px-4 bg-gray-900/50 border border-gray-800 hover:bg-gray-800 text-gray-300 hover:text-white"
-        >
-          New chat
-        </Button>
-        <form onSubmit={handleSubmit} className="flex-1 flex items-end gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message Grok..."
-            className="flex-1 min-h-[44px] max-h-32 resize-none bg-gray-900/50 border border-gray-800 hover:border-gray-700 focus:border-blue-500 focus-visible:ring-blue-500 text-white placeholder-gray-400 rounded-3xl px-6 py-4 shadow-xl backdrop-blur-md"
-            rows={1}
-          />
-          <Button
-            type="submit"
-            disabled={!input.trim() || isTyping}
-            className="h-14 w-14 rounded-3xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-2xl hover:shadow-blue-500/50 disabled:opacity-50 flex-shrink-0"
-          >
-            {isTyping ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
-        </form>
+      {/* Bottom Input Bar - Pixel-perfect screenshot match */}
+      <div className="fixed bottom-6 left-6 right-6 md:bottom-8 md:left-12 md:right-12 z-40 max-w-4xl mx-auto">
+        <div className="bg-gray-900/30 backdrop-blur-md border border-gray-800/50 rounded-3xl p-3 md:p-4 shadow-2xl hover:shadow-xl transition-all">
+          <form onSubmit={handleSubmit} className="flex items-end gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Message Grok..."
+              className="flex-1 min-h-[44px] max-h-24 resize-none bg-transparent border-0 outline-none text-white placeholder-gray-500 text-sm leading-relaxed p-3 -m-3 md:-m-4 rounded-3xl focus-visible:ring-0"
+              rows={1}
+            />
+            <div className="flex items-center gap-1 h-10 flex-shrink-0">
+              <Button type="button" variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl">
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-9 px-2.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-xl gap-1">
+                Grok
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl">
+                <Lightbulb className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl">
+                <Mic className="h-4 w-4" />
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
