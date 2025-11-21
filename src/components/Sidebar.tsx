@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Settings, Plus, History, Google } from "lucide-react";
+import { Settings, Plus, History, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -68,8 +68,8 @@ const Sidebar = ({ clearChat }: SidebarProps) => {
           Settings
         </Button>
         <Button variant="ghost" className="justify-start h-9 px-3 w-full hover:bg-[#343541]">
-          <Google className="mr-2 h-4 w-4" />
-          Sign in with Google
+          <User className="mr-2 h-4 w-4" />
+          Sign in
         </Button>
       </div>
     </motion.aside>
