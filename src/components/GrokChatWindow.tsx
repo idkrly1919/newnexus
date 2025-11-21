@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/components/ui/cn";
+import { useChat } from "@/lib/use-chat";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -16,51 +18,21 @@ interface Message {
 }
 
 const GrokChatWindow = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Hello! I'm Grok, your AI companion. How can I help you today?",
-      timestamp: new Date(),
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const { messages, isTyping, sendMessage, clearChat } = useChat();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [input, setInput] = useState("");
 
   const handleSendMessage = () => {
     if (!input.trim() || isTyping) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
+    
+    sendMessage(input.trim());
     setInput("");
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "I understand what you're asking about. Let me help you with that!",
-        "That's an interesting question! Here's what I think...",
-        "I can definitely help you with that. Here's my response...",
-        "Great question! Let me provide you with a detailed answer."
-      ];
-      
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, response]);
-      setIsTyping(false);
-    }, 1500);
+    
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -70,15 +42,11 @@ const GrokChatWindow = () => {
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      {
-        id: "1",
-        role: "assistant",
-        content: "Hello! I'm Grok, your AI companion. How can I help you today?",
-        timestamp: new Date(),
-      },
-    ]);
+  const adjustHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
   };
 
   // Auto-scroll to bottom
@@ -124,69 +92,147 @@ const GrokChatWindow = () => {
       <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
         <div className="max-w-4xl mx-auto space-y-6">
           <AnimatePresence mode="wait">
-            {messages.map((message) => (
+            {messages.length === 0 ? (
               <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="flex gap-3"
+                exit={{ opacity: 0, y: -30, scale: 0.9 }}
+                className="flex flex-col items-center justify-center py-16 text-center gap-6"
               >
-                {message.role === "user" ? (
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="w-8 h-8"
-                  >
-                    <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justifycenter">
-                      <span className="text-white text-xs font-medium">
-                        {message.content.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="w-8 h-8"
-                  >
-                    <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                      <Sparkles className="h-3 w-3 text-white" />
-                    </div>
-                  </motion.div>
-                )}
-                
                 <motion.div
-                  initial={{ x: message.role === "user" ? 20 : -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
+                  initial={{ rotate: -10, scale: 0.8 }}
+                  animate={{ rotate: 0, scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                  className="flex-1 max-w-md"
+                  className="relative"
                 >
-                  <div
-                    className={cn(
-                      "px-4 py-3 rounded-2xl text-sm leading-relaxed",
-                      message.role === "user" 
-                        ? "bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-purple-600/20 text-white border border-orange-500/30"
-                        : "bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 text-gray-100 border border-gray-600/30"
-                    )}
-                  >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-8 w-8 text-white" />
                   </div>
-                  
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full animate-pulse shadow-sm" />
+                </motion.div>
+                
+                <div className="space-y-2">
+                  <motion.h2
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="text-xs text-gray-500 mt-1"
+                    className="text-3xl font-bold text-white"
                   >
-                    {message.timestamp.toLocaleTimeString()}
-                  </motion.div>
+                    How can I help you today?
+                  </motion.h2>
+                  <motion.p
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-gray-400 max-w-md leading-relaxed"
+                  >
+                    Ask me anything, or request image generation with prompts like 
+                    <span className="font-medium text-orange-400">"generate image of..."</span>
+                  </p>
+                </div>
+
+                {/* Quick Actions */}
+                <motion.div
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-md w-full"
+                >
+                  {[
+                    { text: "Explain quantum computing", icon: "🔬" },
+                    { text: "generate an image of a futuristic city", icon: "🌆" },
+                    { text: "Write a poem about space", icon: "⭐" },
+                    { text: "Help me debug this code", icon: "💻" }
+                  ].map((action, i) => (
+                    <motion.button
+                      key={i}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 + i * 0.1 }}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 5,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        sendMessage(action.text);
+                      }}
+                      className="text-left p-3 bg-white/10 dark:bg-gray-800/20 rounded-lg border border-white/20 dark:border-gray-700/30 hover:bg-white/20 dark:hover:bg-gray-700/40 transition-all backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{action.icon}</span>
+                        <span className="text-sm text-gray-300 dark:text-gray-300">{action.text}</span>
+                      </div>
+                    </motion.button>
+                  ))}
                 </motion.div>
               </motion.div>
-            ))}
+            ) : (
+              messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex gap-3"
+                >
+                  {message.role === "user" ? (
+                    <motion.div
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="w-8 h-8"
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justifycenter">
+                        <span className="text-white text-xs font-medium">
+                          {message.content.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="w-8 h-8"
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                        <Sparkles className="h-3 w-3 text-white" />
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  <motion.div
+                    initial={{ x: message.role === "user" ? 20 : -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    className="flex-1 max-w-md"
+                  >
+                    <div
+                      className={cn(
+                        "px-4 py-3 rounded-2xl text-sm leading-relaxed",
+                        message.role === "user" 
+                          ? "bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-purple-600/20 text-white border border-orange-500/30"
+                          : "bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 text-gray-100 border border-gray-600/30"
+                      )}
+                    >
+                      <div className="whitespace-pre-wrap">{message.content}</div>
+                    </div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-xs text-gray-500 mt-1"
+                    >
+                      {message.timestamp.toLocaleTimeString()}
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              ))
+            )}
             
             {isTyping && (
               <motion.div
@@ -255,8 +301,12 @@ const GrokChatWindow = () => {
             {/* Input Area */}
             <div className="flex-1 relative">
               <Textarea
+                ref={textareaRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  adjustHeight();
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder={isTyping ? "Grok is thinking..." : "Message Grok..."}
                 disabled={isTyping}
