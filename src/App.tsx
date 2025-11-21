@@ -17,7 +17,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="h-screen bg-black text-green-400 font-mono text-sm overflow-hidden">
+        <div className="h-screen bg-black text-white overflow-hidden">
           <Routes>
             <Route path="/" element={<TerminalChat />} />
             <Route path="*" element={<NotFound />} />
